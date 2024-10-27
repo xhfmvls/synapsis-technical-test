@@ -46,7 +46,7 @@ app.post('/register', async (req: Request, res: Response) => {
         return;
     }
 
-    // // TODO: Insert the user into the database (try catch block in case the username already exists)
+    // TODO: Insert the user into the database (try catch block in case the username already exists)
 
     res.status(200).send('User registered successfully');
     return;
