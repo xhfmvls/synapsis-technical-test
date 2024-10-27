@@ -4,15 +4,16 @@
 
 This folder contains the solution for the **Cryptographics Implementation** Challenge.<br>
 For this challenge, I created a REST API that supports user registration and authentication.<br>
-Below is a brief explanation of the code, the explanation of the approach used to solve the challenge, instructions on how to run the code, and several notes regarding the solution.
+Below is a brief explanation of the code, the explanation of the approach used to solve the challenge, documentation on how to build/run the code, and several notes regarding the solution.
 
 ## Code
 
 ### Techstack
-- Node.js (TypeScript)
+- Node.js (with TypeScript)
 - Express.js
 - Prisma ORM
 - MySQL
+- Postman (for API Testing)
 
 ### Endpoints
 1. POST/ login (user authentication)<br>
@@ -58,6 +59,7 @@ password (string, required)
 '5. Hashes the password with the generated salt using bcrypt and stores the user in the database.
 '6. If the username is already in use (or the credentials given is invalid), returns an error. Otherwise, the user is registered successfully and it would return a success message.
 ```
+<br>
 
 ## Approach
 ### Problem 1
@@ -72,3 +74,38 @@ Create a **MySQL** database with user table that consist of **username** and **p
 Required to use a salted hash to store the password into the database. <br>
 - Solution: <br>
 Use **bcrypt** hashing algorithm, which has built-in support for generating salts as part of its process.<br><br>
+
+## Setup (Documentation)
+
+### 1. Set an `.env` file with credentials
+```sh
+DATABASE_URL="mysql://[username]:[password]@localhost:3306/[db_name]?schema=public"
+
+PORT=8000
+
+JWT_SECRET="[jwt_secret]"
+```
+
+### 2. Setting up the project and database
+```sh
+npm install
+
+npx prisma generate
+
+npx prisma migrate dev
+```
+
+### 3. Build the application
+```sh
+npm run build
+```
+
+### 4. Run the application
+```sh
+npm start
+```
+
+### 5. Request Testing
+```
+Import to Postman: **Synapsis.postman_collection.json**
+```
