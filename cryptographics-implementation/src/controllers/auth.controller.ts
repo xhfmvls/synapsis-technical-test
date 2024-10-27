@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, Application } from 'express';
+import { Request, Response } from 'express';
 import bcrypt from "bcrypt";
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if username and password are provided
     if (!body.username || !body.password) {
-        res.status(400).send('Both username and password are required');
+        res.status(400).json({ success: false, message: 'Both username and password are required' });
         return;
     }
 
@@ -24,7 +24,7 @@ export const login = async (req: Request, res: Response) => {
 
     // check if the user exists
     if (!user) {
-        res.status(400).send('Invalid username or password');
+        res.status(400).json({ success: false, message: 'Invalid username or password' });
         return;
     }
 
@@ -34,11 +34,11 @@ export const login = async (req: Request, res: Response) => {
 
     // if the password does not match, return an error
     if (!isPasswordMatch) {
-        res.status(400).send('Invalid username or password');
+        res.status(400).json({ success: false, message: 'Invalid username or password' });
         return;
     }
 
-    res.status(200).send('User logged in successfully');
+    res.status(200).json({ success: true, message: 'User logged in successfully' });
     return;
 }
 
@@ -47,7 +47,7 @@ export const register = async (req: Request, res: Response) => {
 
     // Check if username and password are provided
     if (!body.username || !body.password) {
-        res.status(400).send('Both username and password are required');
+        res.status(400).json({ success: false, message: 'Both username and password are required' });
         return;
     }
 
@@ -56,19 +56,19 @@ export const register = async (req: Request, res: Response) => {
 
     // check whether the username length is greater than 0 and less than 15
     if (username.length < 1 || username.length > 15) {
-        res.status(400).send('Username should be between 1 and 15 characters');
+        res.status(400).json({ success: false, message: 'Username should be between 1 and 15 characters' });
         return;
     }
 
     // check whether the password length is greater than 8
     if (password.length < 8) {
-        res.status(400).send('Password should be at least 8 characters');
+        res.status(400).json({ success: false, message: 'Password should be at least 8 characters' });
         return;
     }
 
     // check whether the password consisting of combination of letter, number, and symbol
     if (!password.match(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])/)) {
-        res.status(400).send('Password should consist of at least one letter, one number, and one symbol');
+        res.status(400).json({ success: false, message: 'Password should consist of at least one letter, one number, and one symbol' });
         return;
     }
 
@@ -89,10 +89,10 @@ export const register = async (req: Request, res: Response) => {
     }
     catch (error) {
         // if the username already exists, return an error
-        res.status(400).send('Username already exists');
+        res.status(400).json({ success: false, message: 'Username already exists' });
         return;
     }
 
-    res.status(200).send('User registered successfully');
+    res.status(200).json({ success: true, message: 'User registered successfully' });
     return;
 }

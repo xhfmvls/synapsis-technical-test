@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { login, register } from './controllers/auth.controller';
-const { PrismaClient } = require('@prisma/client');
 require('express-async-errors');
 
 //For env File 
