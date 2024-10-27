@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from "bcrypt";
+import { generateToken } from '../utils/auth.util';
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -38,7 +39,16 @@ export const login = async (req: Request, res: Response) => {
         return;
     }
 
-    res.status(200).json({ success: true, message: 'User logged in successfully' });
+    // generate auth token
+    const [isTokenGenerated, token] = await generateToken(user.id);
+
+    // if the token is not generated, return an error
+    if (!isTokenGenerated) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+        return;
+    }
+
+    res.status(200).json({ success: true, message: 'User logged in successfully', data: { token: token } });
     return;
 }
 
