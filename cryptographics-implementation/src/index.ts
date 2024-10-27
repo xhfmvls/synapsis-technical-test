@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import bcrypt from "bcrypt";
+const { PrismaClient } = require('@prisma/client');
 require('express-async-errors');
 
 //For env File 
@@ -10,6 +11,7 @@ dotenv.config();
 
 const app: Application = express();
 const port = process.env.PORT || 8000;
+const prisma = new PrismaClient();
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -53,7 +55,19 @@ app.post('/register', async (req: Request, res: Response) => {
     // hash the password with the generated salt
     const hashedPassword = bcrypt.hashSync(password, salt);
 
-    // TODO: Insert the user into the database (try catch block in case the username already exists)
+    try {
+        await prisma.User.create({
+            data: {
+                username: username,
+                password_hash: hashedPassword
+            }
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(400).send('Username already exists');
+        return;
+    }
 
     res.status(200).send('User registered successfully');
     return;
