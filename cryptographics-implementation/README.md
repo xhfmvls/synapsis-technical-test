@@ -16,7 +16,7 @@ Below is a brief explanation of the code, the explanation of the approach used t
 - Postman (for API Testing)
 
 ### Endpoints
-1. POST/ login (user authentication)<br>
+#### 1. POST/ login (user authentication)<br>
 This endpoint allows users to authenticate by providing a valid username and password
 - Request Body:
 ```
@@ -38,7 +38,7 @@ password (string, required)
 '5. If the credentials are valid, return a success message along with the JWT token. if not, return a failure message.
 ```
 
-2. POST/ register (user registration)<br>
+#### 2. POST/ register (user registration)<br>
 This endpoint allows new users to register by providing a username and password.
 - Request Body:
 ```
@@ -59,20 +59,19 @@ password (string, required)
 '5. Hashes the password with the generated salt using bcrypt and stores the user in the database.
 '6. If the username is already in use (or the credentials given is invalid), returns an error. Otherwise, the user is registered successfully and it would return a success message.
 ```
-<br>
 
 ## Approach
 ### Problem 1
-Required to create a program that mimics a user registration and authentication application.<br>
-- Solution: <br>
-Create a REST API application with **Express** Framework (using **TypeScript**) that have **register** endpoint for the user registration purposes and **login** endpoint for the user authentication. The framework used can return a message (success or fail) in form of API response. <br><br>
+Required to create a program that mimics a user registration and authentication application.
+#### Solution:
+Create a REST API application with **Express** Framework (using **TypeScript**) that have **register** endpoint for the user registration purposes and **login** endpoint for the user authentication. The framework used can return a message (success or fail) in form of API response.<br>
 ### Problem 2
-Required to store and restore the user credentials data into/from the database. <br>
-- Solution: <br>
-Create a **MySQL** database with user table that consist of **username** and **password_hash** field. Use ""Prisma"" ORM to enable the API to interact with the database securily. <br><br>
+Required to store and restore the user credentials data into/from the database.
+#### Solution:
+Create a **MySQL** database with user table that consist of **username** and **password_hash** field. Use ""Prisma"" ORM to enable the API to interact with the database securily.<br>
 ### Problem 3
-Required to use a salted hash to store the password into the database. <br>
-- Solution: <br>
+Required to use a salted hash to store the password into the database.
+#### Solution:
 Use **bcrypt** hashing algorithm, which has built-in support for generating salts as part of its process.<br><br>
 
 ## Setup (Documentation)
@@ -106,6 +105,7 @@ npm start
 ```
 
 ### 5. Request Testing
+Import API Documentation Json to Postman:
 ```
-Import to Postman: **Synapsis.postman_collection.json**
+Synapsis.postman_collection.json
 ```
