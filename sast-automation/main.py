@@ -46,10 +46,12 @@ def get_hotspots(sonar_host_url, project_key, sonar_token):
 
 
 # Example usage
-project_key = ""
+project_key = "sast-automation"
 scan_project_directory = "."
 sonar_host_url = "http://localhost:9000"
-sonar_token = ""
+sonar_token = "squ_affeaaa700a99a80c6d877cb74d50228138668e6"
 
 run_sonar_scanner(project_key, scan_project_directory, sonar_host_url, sonar_token)
-get_hotspots(sonar_host_url, project_key, sonar_token)
+hotspots = get_hotspots(sonar_host_url, project_key, sonar_token)
+
+# TODO: Convert hotspots into pdf report
