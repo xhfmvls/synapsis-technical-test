@@ -19,6 +19,45 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to Express & TypeScript Server');
 });
 
+app.post('/login', async (req: Request, res: Response) => {
+    const body = req.body;
+
+    // Check if username and password are provided
+    if (!body.username || !body.password) {
+        res.status(400).send('Both username and password are required');
+        return;
+    }
+
+    const username = body.username;
+    const password = body.password;
+
+    // get the user data with the provided username
+    const user = await prisma.User.findUnique({
+        where: {
+            username: username
+        }
+    });
+
+    // check if the user exists
+    if (!user) {
+        res.status(400).send('Invalid username or password');
+        return;
+    }
+
+    // get the stored password hash and compare the password with the stored password hash
+    const storedPasswordHash = user.password_hash;
+    const isPasswordMatch = bcrypt.compareSync(password, storedPasswordHash);
+
+    // if the password does not match, return an error
+    if (!isPasswordMatch) {
+        res.status(400).send('Invalid username or password');
+        return;
+    }
+
+    res.status(200).send('User logged in successfully');
+    return;
+});
+
 app.post('/register', async (req: Request, res: Response) => {
     const body = req.body;
 
@@ -56,6 +95,7 @@ app.post('/register', async (req: Request, res: Response) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     try {
+        // create a new user with the provided username and hashed password
         await prisma.User.create({
             data: {
                 username: username,
@@ -64,7 +104,7 @@ app.post('/register', async (req: Request, res: Response) => {
         });
     }
     catch (error) {
-        console.log(error);
+        // if the username already exists, return an error
         res.status(400).send('Username already exists');
         return;
     }
