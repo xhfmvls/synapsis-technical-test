@@ -21,9 +21,7 @@ git clone https://github.com/xhfmvls/synapsis-technical-test.git
 2. Navigate to the folder of the challenge you want to explore:
 ```sh
 cd cryptographics-implementation
-```
-or
-```sh
+# or
 cd sast-automation
 ```
 
