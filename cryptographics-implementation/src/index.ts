@@ -1,7 +1,8 @@
-import express, { Express, Request, Response , Application } from 'express';
+import express, { Express, Request, Response, Application } from 'express';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import bcrypt from "bcrypt";
 require('express-async-errors');
 
 //For env File 
@@ -13,7 +14,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to Express & TypeScript Server');
+    res.send('Welcome to Express & TypeScript Server');
 });
 
 app.post('/register', async (req: Request, res: Response) => {
@@ -46,6 +47,12 @@ app.post('/register', async (req: Request, res: Response) => {
         return;
     }
 
+    // generate salt (10 rounds)
+    const salt = bcrypt.genSaltSync(10);
+
+    // hash the password with the generated salt
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     // TODO: Insert the user into the database (try catch block in case the username already exists)
 
     res.status(200).send('User registered successfully');
@@ -53,5 +60,5 @@ app.post('/register', async (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is ready at http://localhost:${port}`);
+    console.log(`Server is ready at http://localhost:${port}`);
 });
