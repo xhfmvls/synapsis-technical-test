@@ -27,4 +27,5 @@ or
 cd sast-automation
 ```
 
-Feel free to contact me if you have any questions!
+<br>Feel free to contact me if you have any questions.
+Don't forget to check out my other repositories/projects. 😀
