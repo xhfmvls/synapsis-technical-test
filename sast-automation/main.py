@@ -8,7 +8,22 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.units import inch
 
-def json_to_pdf(data, output_pdf_path):
+def get_hotspot_details(sonar_host_url, hotspot_key, sonar_token):
+    url = f"{sonar_host_url}/api/hotspots/show"
+    params = {'hotspot': hotspot_key}
+    headers = {
+        'Authorization': f'Bearer {sonar_token}'  # Use Bearer token for authentication
+    }
+
+    # Send a GET request to fetch the hotspot details
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        return response.json()  # Return the JSON data if successful
+    else:
+        print(f"Failed to fetch hotspot details for {hotspot_key}: {response.status_code} - {response.text}")
+
+def json_to_pdf(data, output_pdf_path, sonar_token, project_key):
     # Load data
     components = data['components']
     hotspots = data['hotspots']
@@ -20,8 +35,9 @@ def json_to_pdf(data, output_pdf_path):
     # Define styles
     styles = getSampleStyleSheet()
     table_title_style = styles['Heading2']
-    normal_style = styles['BodyText']
+    normal_style = styles['Heading4']
     hotspots_title_style = styles['Heading3']
+    content_style = styles['Normal']
 
     components_table_style = TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -44,6 +60,10 @@ def json_to_pdf(data, output_pdf_path):
         ('FONTSIZE', (0, 0), (-1, -1), 8)  # Shrinked font size for hotspots
     ])
     
+    # Overview
+    elements.append(Paragraph(f"Project: {project_key}", styles['Heading1']))
+    elements.append(Paragraph(f"Visit: http://localhost:9000/dashboard?id={project_key} for more details", styles['Heading3']))
+
     # Components Table
     elements.append(Paragraph("Components", table_title_style))
     components_data = [[
@@ -83,16 +103,32 @@ def json_to_pdf(data, output_pdf_path):
 
     # Add space between table and details
     elements.append(Spacer(1, 0.5 * inch))
-    
-    # Add hotspot details
+
+    # Hotspot Details
+    elements.append(Paragraph("Hotspots Details", table_title_style))
+
     for hs in hotspots:
         elements.append(Paragraph(hs['key'], hotspots_title_style))
-        elements.append(Paragraph(f"Component: {next(comp['path'] for comp in components if comp['key'] == hs['component'])}", normal_style))
-        elements.append(Paragraph(f"Security Category: {hs['securityCategory']}", normal_style))
-        elements.append(Paragraph(f"Vulnerability Probability: {hs['vulnerabilityProbability']}", normal_style))
-        elements.append(Paragraph(f"Line: {hs['line']}", normal_style))
-        elements.append(Paragraph(f"Message: {hs['message']}", normal_style))
-        elements.append(Spacer(1, 0.2 * inch))  # Space after each hotspot detail
+        
+        # Fetch detailed information for the current hotspot
+        hotspot_details = get_hotspot_details("http://localhost:9000", hs['key'], sonar_token)
+        
+        if hotspot_details:  # Check if details were fetched successfully
+            # Extract relevant information from the rule
+            rule = hotspot_details.get('rule', {})
+            security_category = rule.get('securityCategory', 'N/A')
+            vulnerability_probability = rule.get('vulnerabilityProbability', 'N/A')
+            risk_description = rule.get('riskDescription', 'N/A')
+            
+            # Create paragraphs for the extracted information
+            elements.append(Paragraph(f"Component: {next(comp['path'] for comp in components if comp['key'] == hs['component'])}", normal_style))
+            elements.append(Paragraph(f"Security Category: {security_category}", normal_style))
+            elements.append(Paragraph(f"Vulnerability Probability: {vulnerability_probability}", normal_style))
+            elements.append(Paragraph(f"Line: {hs['line']}", normal_style))
+            elements.append(Paragraph(f"Message: {hs['message']}", normal_style))
+            elements.append(Paragraph(f"Risk Description:", normal_style))
+            elements.append(Paragraph(f"{risk_description}", content_style))
+            elements.append(Spacer(1, 0.2 * inch))  # Space after each hotspot detail
     
     # Build PDF
     pdf.build(elements)
@@ -154,9 +190,7 @@ run_sonar_scanner(project_key, scan_project_directory, sonar_host_url, sonar_tok
 # Fetch hotspots from SonarQube
 hotspots = get_hotspots(sonar_host_url, project_key, sonar_token)
 
-hotspots = {'paging': {'pageIndex': 1, 'pageSize': 100, 'total': 5}, 'hotspots': [{'key': '878f4579-14d3-498a-966e-4ec04eddb19d', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'dos', 'vulnerabilityProbability': 'MEDIUM', 'status': 'TO_REVIEW', 'line': 20, 'message': 'Make sure the content length limit is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 20, 'endLine': 20, 'startOffset': 16, 'endOffset': 36}, 'flows': [], 'ruleKey': 'typescript:S5693', 'messageFormattings': []}, {'key': 'be2147bd-9d16-4d73-81f9-ffdce70de05e', 'component': 'sast-automation:controllers/user.controller.ts', 'project': 'sast-automation', 'securityCategory': 'encrypt-data', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 13, 'message': 'Using http protocol is insecure. Use https instead.', 'author': 'vincent.pradipta@binus.ac.id', 'creationDate': '2024-08-16T23:12:05+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 13, 'endLine': 13, 'startOffset': 16, 'endOffset': 60}, 'flows': [], 'ruleKey': 'typescript:S5332', 'messageFormattings': []}, {'key': 'a56af880-2ab6-4e10-87a9-2d932d595148', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'insecure-conf', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 23, 'message': 'Make sure that enabling CORS is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 23, 'endLine': 23, 'startOffset': 0, 'endOffset': 15}, 'flows': [], 'ruleKey': 'typescript:S5122', 'messageFormattings': []}, {'key': 'aa336ea9-a78c-42f9-baa4-77757c2a48d0', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'others', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 18, 'message': 'This framework implicitly discloses version information by default. Make sure it is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 18, 'endLine': 18, 'startOffset': 6, 'endOffset': 9}, 'flows': [], 'ruleKey': 'typescript:S5689', 'messageFormattings': []}, {'key': '8858bbc2-2747-4ce1-a059-02a0e40c21b4', 'component': 'sast-automation:utils/misc.utils.ts', 'project': 'sast-automation', 'securityCategory': 'others', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 79, 'message': 'Make sure that expanding this archive file is safe here.', 'author': 'vincent.pradipta@binus.ac.id', 'creationDate': '2024-08-16T23:12:05+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 79, 'endLine': 79, 'startOffset': 8, 'endOffset': 12}, 'flows': [], 'ruleKey': 'typescript:S5042', 'messageFormattings': []}], 'components': [{'key': 'sast-automation:index.ts', 'qualifier': 'FIL', 'name': 'index.ts', 'longName': 'index.ts', 'path': 'index.ts'}, {'key': 'sast-automation:utils/misc.utils.ts', 'qualifier': 'FIL', 'name': 'misc.utils.ts', 'longName': 'utils/misc.utils.ts', 'path': 'utils/misc.utils.ts'}, {'key': 'sast-automation:controllers/user.controller.ts', 'qualifier': 'FIL', 'name': 'user.controller.ts', 'longName': 'controllers/user.controller.ts', 'path': 'controllers/user.controller.ts'}, {'key': 'sast-automation', 'qualifier': 'TRK', 'name': 'sast-automation', 'longName': 'sast-automation'}]}
-
 # Convert hotspots json into pdf report
-json_to_pdf(hotspots, 'hotspots_report.pdf')
+json_to_pdf(hotspots, 'hotspots_report.pdf', sonar_token, project_key)
 
 # TODO: Get data by args flag from command line
