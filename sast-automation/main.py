@@ -62,7 +62,9 @@ def json_to_pdf(data, output_pdf_path, sonar_token, project_key):
     
     # Overview
     elements.append(Paragraph(f"Project: {project_key}", styles['Heading1']))
-    elements.append(Paragraph(f"Visit: http://localhost:9000/dashboard?id={project_key} for more details", styles['Heading3']))
+    elements.append(Paragraph(f"Visit: http://localhost:9000/dashboard?id={project_key} for more details.", styles['Heading3']))
+    elements.append(Paragraph(f"{len(hotspots)} Security Hotspot(s)", styles['Heading3']))
+    elements.append(Spacer(1, 0.5 * inch))  # Space after overview
 
     # Components Table
     elements.append(Paragraph("Components", table_title_style))
