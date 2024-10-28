@@ -1,5 +1,80 @@
 import subprocess
 import requests
+import json
+import pandas as pd
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.units import inch
+
+def json_to_pdf(data, output_pdf_path):
+    # Load data
+    components = data['components']
+    hotspots = data['hotspots']
+    
+    # Create PDF document
+    pdf = SimpleDocTemplate(output_pdf_path, pagesize=A4)
+    elements = []
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    components_table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ])
+
+    hotspots_table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 0), (-1, -1), 8)  # Shrinked font size for hotspots
+    ])
+    
+    # Components Table
+    elements.append(Paragraph("Components", title_style))
+    components_data = [[
+        "Key", "Qualifier", "Name", "Path"
+    ]] + [[comp['key'], comp['qualifier'], comp['name'], comp['path']] for comp in components]
+    
+    components_table = Table(components_data)
+    components_table.setStyle(components_table_style)
+    elements.append(components_table)
+    
+    # Add space between tables
+    elements.append(Spacer(1, 0.5 * inch))
+
+    # Hotspots Table
+    elements.append(Paragraph("Hotspots", title_style))
+
+    # Create a dictionary for component key-to-path lookup
+    component_path_map = {comp['key']: comp['path'] for comp in components}
+
+    # Generate the hotspots data with component paths
+    hotspots_data = [[
+        "Key", "Component Path", "Security Category", 
+        "Vulnerability Probability", "Line"
+    ]] + [[
+        hs['key'], component_path_map.get(hs['component'], 'N/A'),  # Replace component key with path
+        hs['securityCategory'], hs['vulnerabilityProbability'], hs['line']
+    ] for hs in hotspots]
+    
+    hotspots_table = Table(hotspots_data)
+    hotspots_table.setStyle(hotspots_table_style)
+    elements.append(hotspots_table)
+    
+    # Build PDF
+    pdf.build(elements)
 
 def run_sonar_scanner(project_key, scan_project_directory, sonar_host_url, sonar_token):
     # Use the full path to sonar-scanner.bat
@@ -55,3 +130,4 @@ run_sonar_scanner(project_key, scan_project_directory, sonar_host_url, sonar_tok
 hotspots = get_hotspots(sonar_host_url, project_key, sonar_token)
 
 # TODO: Convert hotspots into pdf report
+# TODO: Get data by args flag from command line
