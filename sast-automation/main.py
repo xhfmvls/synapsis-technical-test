@@ -19,7 +19,10 @@ def json_to_pdf(data, output_pdf_path):
     
     # Define styles
     styles = getSampleStyleSheet()
-    title_style = styles['Heading2']
+    table_title_style = styles['Heading2']
+    normal_style = styles['BodyText']
+    hotspots_title_style = styles['Heading3']
+
     components_table_style = TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -42,7 +45,7 @@ def json_to_pdf(data, output_pdf_path):
     ])
     
     # Components Table
-    elements.append(Paragraph("Components", title_style))
+    elements.append(Paragraph("Components", table_title_style))
     components_data = [[
         "Key", "Qualifier", "Name", "Path"
     ]] + [[comp['key'], comp['qualifier'], comp['name'], comp['path']] for comp in components]
@@ -55,7 +58,7 @@ def json_to_pdf(data, output_pdf_path):
     elements.append(Spacer(1, 0.5 * inch))
 
     # Hotspots Table
-    elements.append(Paragraph("Hotspots", title_style))
+    elements.append(Paragraph("Hotspots", table_title_style))
 
     # Create a dictionary for component key-to-path lookup
     component_path_map = {comp['key']: comp['path'] for comp in components}
@@ -72,6 +75,19 @@ def json_to_pdf(data, output_pdf_path):
     hotspots_table = Table(hotspots_data)
     hotspots_table.setStyle(hotspots_table_style)
     elements.append(hotspots_table)
+
+    # Add space between table and details
+    elements.append(Spacer(1, 0.5 * inch))
+    
+    # Add hotspot details
+    for hs in hotspots:
+        elements.append(Paragraph(hs['key'], hotspots_title_style))
+        elements.append(Paragraph(f"Component: {next(comp['path'] for comp in components if comp['key'] == hs['component'])}", normal_style))
+        elements.append(Paragraph(f"Security Category: {hs['securityCategory']}", normal_style))
+        elements.append(Paragraph(f"Vulnerability Probability: {hs['vulnerabilityProbability']}", normal_style))
+        elements.append(Paragraph(f"Line: {hs['line']}", normal_style))
+        elements.append(Paragraph(f"Message: {hs['message']}", normal_style))
+        elements.append(Spacer(1, 0.2 * inch))  # Space after each hotspot detail
     
     # Build PDF
     pdf.build(elements)
