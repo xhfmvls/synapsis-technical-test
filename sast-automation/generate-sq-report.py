@@ -188,6 +188,7 @@ def main():
     parser.add_argument('--project', type=str, required=True, help='Project Key')
     parser.add_argument('--token', type=str, required=True, help='SonarQube Token')
     parser.add_argument('--host', type=str, required=False, help='SonarQube Host URL', default='http://localhost:9000')
+    parser.add_argument('--output', type=str, required=False, help='Output PDF file name', default='hotspots_report.pdf')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -195,6 +196,7 @@ def main():
     project_key = args.project
     sonar_token = args.token
     sonar_host_url = args.host
+    output_pdf_path = args.output
     scan_project_directory = "."
 
     # Run the SonarQube scanner
@@ -204,6 +206,6 @@ def main():
     hotspots = get_hotspots(sonar_host_url, project_key, sonar_token)
 
     # Convert hotspots json into pdf report
-    json_to_pdf(hotspots, 'hotspots_report.pdf', sonar_token, project_key)
+    json_to_pdf(hotspots, output_pdf_path, sonar_token, project_key)
 
 main()

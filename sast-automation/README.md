@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder contains the solution for the **Static Application Security Testing and Automation** Challenge.<br>
+This directory contains the solution for the **Static Application Security Testing and Automation** Challenge.<br>
 For this challenge, I created a script that allow you to generate SonarQube vulnerability (security hotspots) report in PDF format.<br>
 
 Below is a brief explanation of the script, the explanation of the approach used to script, documentation on how to run the script, and several notes regarding the solution.
