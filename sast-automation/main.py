@@ -48,7 +48,12 @@ def json_to_pdf(data, output_pdf_path):
     elements.append(Paragraph("Components", table_title_style))
     components_data = [[
         "Key", "Qualifier", "Name", "Path"
-    ]] + [[comp['key'], comp['qualifier'], comp['name'], comp['path']] for comp in components]
+    ]] + [[
+        comp['key'], 
+        comp['qualifier'], 
+        comp['name'], 
+        comp.get('path', "")  # Use get to avoid KeyError, returning "" if 'path' is missing
+    ] for comp in components]
     
     components_table = Table(components_data)
     components_table.setStyle(components_table_style)
@@ -61,7 +66,7 @@ def json_to_pdf(data, output_pdf_path):
     elements.append(Paragraph("Hotspots", table_title_style))
 
     # Create a dictionary for component key-to-path lookup
-    component_path_map = {comp['key']: comp['path'] for comp in components}
+    component_path_map = {comp['key']: comp.get('path', '') for comp in components}
 
     # Generate the hotspots data with component paths
     hotspots_data = [[
@@ -131,7 +136,7 @@ def get_hotspots(sonar_host_url, project_key, sonar_token):
         # Print each hotspot's key and description
         for hotspot in hotspots:
             print(f"Hotspot Key: {hotspot['key']}")
-        return hotspots
+        return response.json()
     else:
         print(f"Failed to fetch hotspots: {response.status_code} - {response.text}")
         return []
@@ -143,8 +148,15 @@ scan_project_directory = "."
 sonar_host_url = "http://localhost:9000"
 sonar_token = ""
 
+# Run the SonarQube scanner
 run_sonar_scanner(project_key, scan_project_directory, sonar_host_url, sonar_token)
+
+# Fetch hotspots from SonarQube
 hotspots = get_hotspots(sonar_host_url, project_key, sonar_token)
 
-# TODO: Convert hotspots into pdf report
+hotspots = {'paging': {'pageIndex': 1, 'pageSize': 100, 'total': 5}, 'hotspots': [{'key': '878f4579-14d3-498a-966e-4ec04eddb19d', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'dos', 'vulnerabilityProbability': 'MEDIUM', 'status': 'TO_REVIEW', 'line': 20, 'message': 'Make sure the content length limit is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 20, 'endLine': 20, 'startOffset': 16, 'endOffset': 36}, 'flows': [], 'ruleKey': 'typescript:S5693', 'messageFormattings': []}, {'key': 'be2147bd-9d16-4d73-81f9-ffdce70de05e', 'component': 'sast-automation:controllers/user.controller.ts', 'project': 'sast-automation', 'securityCategory': 'encrypt-data', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 13, 'message': 'Using http protocol is insecure. Use https instead.', 'author': 'vincent.pradipta@binus.ac.id', 'creationDate': '2024-08-16T23:12:05+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 13, 'endLine': 13, 'startOffset': 16, 'endOffset': 60}, 'flows': [], 'ruleKey': 'typescript:S5332', 'messageFormattings': []}, {'key': 'a56af880-2ab6-4e10-87a9-2d932d595148', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'insecure-conf', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 23, 'message': 'Make sure that enabling CORS is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 23, 'endLine': 23, 'startOffset': 0, 'endOffset': 15}, 'flows': [], 'ruleKey': 'typescript:S5122', 'messageFormattings': []}, {'key': 'aa336ea9-a78c-42f9-baa4-77757c2a48d0', 'component': 'sast-automation:index.ts', 'project': 'sast-automation', 'securityCategory': 'others', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 18, 'message': 'This framework implicitly discloses version information by default. Make sure it is safe here.', 'author': '', 'creationDate': '2024-10-28T03:53:57+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 18, 'endLine': 18, 'startOffset': 6, 'endOffset': 9}, 'flows': [], 'ruleKey': 'typescript:S5689', 'messageFormattings': []}, {'key': '8858bbc2-2747-4ce1-a059-02a0e40c21b4', 'component': 'sast-automation:utils/misc.utils.ts', 'project': 'sast-automation', 'securityCategory': 'others', 'vulnerabilityProbability': 'LOW', 'status': 'TO_REVIEW', 'line': 79, 'message': 'Make sure that expanding this archive file is safe here.', 'author': 'vincent.pradipta@binus.ac.id', 'creationDate': '2024-08-16T23:12:05+0700', 'updateDate': '2024-10-28T03:53:57+0700', 'textRange': {'startLine': 79, 'endLine': 79, 'startOffset': 8, 'endOffset': 12}, 'flows': [], 'ruleKey': 'typescript:S5042', 'messageFormattings': []}], 'components': [{'key': 'sast-automation:index.ts', 'qualifier': 'FIL', 'name': 'index.ts', 'longName': 'index.ts', 'path': 'index.ts'}, {'key': 'sast-automation:utils/misc.utils.ts', 'qualifier': 'FIL', 'name': 'misc.utils.ts', 'longName': 'utils/misc.utils.ts', 'path': 'utils/misc.utils.ts'}, {'key': 'sast-automation:controllers/user.controller.ts', 'qualifier': 'FIL', 'name': 'user.controller.ts', 'longName': 'controllers/user.controller.ts', 'path': 'controllers/user.controller.ts'}, {'key': 'sast-automation', 'qualifier': 'TRK', 'name': 'sast-automation', 'longName': 'sast-automation'}]}
+
+# Convert hotspots json into pdf report
+json_to_pdf(hotspots, 'hotspots_report.pdf')
+
 # TODO: Get data by args flag from command line
